@@ -14,4 +14,7 @@ public abstract class Machine {
 
   public static native void dumpHeap(String outputFile);
 
+  public static native void setupThreadAllocator(int size);
+  
+  public static native void disposeThreadAllocator();
 }

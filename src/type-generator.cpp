@@ -1943,7 +1943,7 @@ writeConstructors(Output* out, Object* declarations)
         }
       }
 
-      out->write("  object o = allocate(t, ");
+      out->write("  object o = allocateObject(t, ");
       writeOffset(out, typeOffset(o), true);
       if (hasObjectMask) {
         out->write(", true");

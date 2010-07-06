@@ -109,7 +109,7 @@ set(void* o, unsigned offsetInWords, void* value)
   set(getp(o, offsetInWords), value);
 }
 
-class Segment {
+class Segment : public Heap::ThreadHeap {
  public:
   class Map {
    public:
@@ -443,7 +443,7 @@ class Segment {
     return static_cast<uintptr_t*>(p) - data;
   }
 
-  void* allocate(unsigned size) {
+  virtual void* allocate(unsigned size) {
     assert(context, size);
     assert(context, position() + size <= capacity());
 
@@ -452,7 +452,7 @@ class Segment {
     return p;
   }
 
-  void dispose() {
+  virtual void dispose() {
     if (data) {
       free(context, data, (footprint(capacity())) * BytesPerWord);
     }
@@ -1943,6 +1943,12 @@ class MyHeap: public Heap {
   virtual void disposeFixies() {
     c.disposeFixies();
   }
+
+#ifdef AVIAN_THREAD_ALLOCATOR
+  virtual ThreadHeap* createThreadHeap(unsigned size) {
+	  return new (c.system->tryAllocate(sizeof(local::Segment))) Segment(&c, 0, size, size);
+  }
+#endif
 
   virtual void dispose() {
     c.dispose();

@@ -1346,6 +1346,9 @@ class Thread {
   void init();
   void exit();
   void dispose();
+#ifdef AVIAN_THREAD_ALLOCATOR
+  void setThreadAllocatorSize(int size);
+#endif
 
   JNIEnvVTable* vtable;
   Machine* m;
@@ -1371,6 +1374,9 @@ class Thread {
   bool useBackupHeap;
   bool waiting;
   bool tracing;
+#ifdef AVIAN_THREAD_ALLOCATOR
+  Heap::ThreadHeap* threadHeap;
+#endif
 #ifdef VM_STRESS
   bool stress;
 #endif // VM_STRESS
@@ -1599,7 +1605,6 @@ inline object
 allocate(Thread* t, unsigned sizeInBytes, bool objectMask)
 {
   stress(t);
-
   if (UNLIKELY(t->heapIndex + ceiling(sizeInBytes, BytesPerWord)
                > ThreadHeapSizeInWords
                or t->m->exclusive))
@@ -1608,6 +1613,22 @@ allocate(Thread* t, unsigned sizeInBytes, bool objectMask)
   } else {
     return allocateSmall(t, sizeInBytes);
   }
+}
+
+inline object
+allocateObject(Thread* t, unsigned sizeInBytes, bool objectMask)
+{
+#ifdef AVIAN_THREAD_ALLOCATOR
+  if (t->threadHeap) {
+#ifdef AVIAN_THREAD_ALLOCATOR_DEBUG
+	  printf("allocate from thread heap %d\n", sizeInBytes);
+#endif
+	  object o = reinterpret_cast<object> (t->threadHeap->allocate(sizeInBytes));
+	  memset(o, 0, sizeInBytes);
+	  return o;
+  }
+#endif
+  return allocate(t, sizeInBytes, objectMask);
 }
 
 inline void

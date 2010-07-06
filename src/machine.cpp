@@ -2266,6 +2266,11 @@ Thread::init()
   }
 
   threadPeer(this, javaThread) = reinterpret_cast<jlong>(this);
+
+#ifdef AVIAN_THREAD_ALLOCATOR
+  threadHeap = 0;
+#endif
+
 }
 
 void
@@ -2290,6 +2295,10 @@ Thread::dispose()
 {
   lock->dispose();
 
+#ifdef AVIAN_THREAD_ALLOCATOR
+  setThreadAllocatorSize(0);
+#endif
+
   if (systemThread) {
     systemThread->dispose();
   }
@@ -2298,6 +2307,27 @@ Thread::dispose()
 
   m->processor->dispose(this);
 }
+
+#ifdef AVIAN_THREAD_ALLOCATOR
+void
+Thread::setThreadAllocatorSize(int size)
+{
+  if (threadHeap) {
+#ifdef AVIAN_THREAD_ALLOCATOR_DEBUG
+	  printf("threadHeap->dispose()\n");
+#endif
+	  // threadHeap->collect(this, MajorCollection)
+	  threadHeap->dispose();
+	  threadHeap = 0;
+  }
+#ifdef AVIAN_THREAD_ALLOCATOR_DEBUG
+  printf("setThreadAllocatorSize(%d)\n", size);
+#endif
+  if (size > 0) {
+	  threadHeap = m->heap->createThreadHeap(size);
+  }
+}
+#endif
 
 void
 shutDown(Thread* t)

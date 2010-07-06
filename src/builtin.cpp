@@ -736,6 +736,27 @@ Avian_avian_Machine_dumpHeap
 
 #endif//AVIAN_HEAPDUMP
 
+#ifdef AVIAN_THREAD_ALLOCATOR
+
+extern "C" JNIEXPORT void JNICALL
+Avian_avian_Machine_setupThreadAllocator
+(Thread* t, object, uintptr_t* arguments)
+{
+	printf("setup thread allocator, with size %d.\n", arguments[0]);
+	t->setThreadAllocatorSize(arguments[0]);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Avian_avian_Machine_disposeThreadAllocator
+(Thread* t, object, uintptr_t*)
+{
+	printf("dispose thread allocator.\n");
+	t->setThreadAllocatorSize(0);
+}
+
+
+#endif//AVIAN_THREAD_ALLOCATOR
+
 extern "C" JNIEXPORT void JNICALL
 Avian_java_lang_Runtime_exit
 (Thread* t, object, uintptr_t* arguments)

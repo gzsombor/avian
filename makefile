@@ -39,6 +39,9 @@ endif
 ifeq ($(continuations),true)
 	options := $(options)-continuations
 endif
+ifeq ($(threadallocator),true)
+	options := $(options)-threadallocator
+endif
 ifdef gnu
   options := $(options)-gnu
 	gnu-sources = $(src)/gnu.cpp
@@ -375,6 +378,10 @@ endif
 ifeq ($(continuations),true)
 	cflags += -DAVIAN_CONTINUATIONS
 	asmflags += -DAVIAN_CONTINUATIONS
+endif
+
+ifeq ($(threadallocator),true)
+	cflags += -DAVIAN_THREAD_ALLOCATOR
 endif
 
 bootimage-generator-sources = $(src)/bootimage.cpp 

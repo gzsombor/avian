@@ -51,6 +51,12 @@ class Heap: public Allocator {
     virtual void walk(void*, Walker*) = 0;
   };
 
+  class ThreadHeap {
+   public:
+	virtual void* allocate(unsigned size) = 0;
+	virtual void dispose() = 0;
+  };
+
   virtual void setClient(Client* client) = 0;
   virtual void setImmortalHeap(uintptr_t* start, unsigned sizeInWords) = 0;
   virtual void collect(CollectionType type, unsigned footprint) = 0;
@@ -66,6 +72,9 @@ class Heap: public Allocator {
   virtual CollectionType collectionType() = 0;
   virtual void disposeFixies() = 0;
   virtual void dispose() = 0;
+#ifdef AVIAN_THREAD_ALLOCATOR
+  virtual ThreadHeap* createThreadHeap(unsigned size) = 0;
+#endif
 };
 
 Heap* makeHeap(System* system, unsigned limit);
