@@ -2591,7 +2591,16 @@ interpret(Thread* t)
       object value = popObject(t);
       object o = popObject(t);
       if (LIKELY(o)) {
-        set(t, o, fieldOffset(t, field), value);
+#ifdef AVIAN_THREAD_ALLOCATOR
+    	  if (LIKELY(validReference(t, o, value))) {
+    		  set(t, o, fieldOffset(t, field), value);
+    	  } else {
+    		  printf("set field not allowed\n");
+    	      // exception = makeAvianInvalidFieldAssignment(t);
+    	  }
+#else
+    	  set(t, o, fieldOffset(t, field), value);
+#endif
       } else {
         exception = makeNullPointerException(t);
       }

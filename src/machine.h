@@ -1615,6 +1615,7 @@ allocate(Thread* t, unsigned sizeInBytes, bool objectMask)
   }
 }
 
+// this is called when memory needs to be allocated for java objects.
 inline object
 allocateObject(Thread* t, unsigned sizeInBytes, bool objectMask)
 {
@@ -1625,6 +1626,7 @@ allocateObject(Thread* t, unsigned sizeInBytes, bool objectMask)
 #endif
 	  object o = reinterpret_cast<object> (t->threadHeap->allocate(sizeInBytes));
 	  memset(o, 0, sizeInBytes);
+	  printf("allocation %d -> %x\n", sizeInBytes, reinterpret_cast<uint32_t>(o));
 	  return o;
   }
 #endif
@@ -1828,6 +1830,12 @@ inline object
 makeNullPointerException(Thread* t)
 {
   return makeNullPointerException(t, 0, makeTrace(t), 0);
+}
+
+inline object
+makeAvianInvalidFieldAssignment(Thread* t)
+{
+	return makeAvianInvalidFieldAssignment(t, 0, makeTrace(t), 0);
 }
 
 inline object
@@ -3031,5 +3039,22 @@ vmPrintTrace(vm::Thread* t);
 
 void*
 vmAddressFromLine(vm::Thread* t, vm::object m, unsigned line);
+
+#ifdef AVIAN_THREAD_ALLOCATOR
+inline bool
+validReference(vm::Thread* t, vm::object base, vm::object field)
+{
+  if (t->threadHeap && t->threadHeap->contains(field)) {
+	printf("set object(%x)[''] := %x :", reinterpret_cast<uintptr_t>(base), reinterpret_cast<uintptr_t>(field));
+	if (!t->threadHeap->contains(base)) {
+		printf("- not in the thread heap!\n");
+		return false;
+	} else {
+		printf("- allowed\n");
+	}
+  }
+  return true;
+}
+#endif
 
 #endif//MACHINE_H

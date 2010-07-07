@@ -425,7 +425,7 @@ class Segment : public Heap::ThreadHeap {
     }    
   }
 
-  bool contains(void* p) {
+  virtual bool contains(void* p) {
     return position() and p >= data and p < data + position();
   }
 
@@ -1971,5 +1971,6 @@ makeHeap(System* system, unsigned limit)
   return new (system->tryAllocate(sizeof(local::MyHeap)))
     local::MyHeap(system, limit);
 }
+
 
 } // namespace vm

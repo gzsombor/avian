@@ -54,6 +54,7 @@ class Heap: public Allocator {
   class ThreadHeap {
    public:
 	virtual void* allocate(unsigned size) = 0;
+	virtual bool contains(void*) = 0;
 	virtual void dispose() = 0;
   };
 
