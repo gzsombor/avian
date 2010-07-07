@@ -13,7 +13,7 @@ public class ThreadTest implements Runnable {
 
 	@Override
 	public void run() {
-		finalValue = new Long(5);
+		finalValue = new Long((long) (Math.random()*1000));
 		if (useThreadAllocator) {
 			Machine.setupThreadAllocator(100000);
 		}
@@ -21,7 +21,7 @@ public class ThreadTest implements Runnable {
 		System.out.println("long:" + finalValue + " from "
 				+ Thread.currentThread().getName());
 
-		finalValue2 = new Long(42);
+		finalValue2 = new Long((long) (Math.random()*1000));
 		System.out.println("long 2:" + finalValue2 + " from "
 				+ Thread.currentThread().getName());
 
@@ -54,6 +54,7 @@ public class ThreadTest implements Runnable {
 		thread.start();
 		try {
 			thread.join();
+			Thread.currentThread().sleep(1000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

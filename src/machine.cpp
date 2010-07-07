@@ -2287,6 +2287,9 @@ Thread::exit()
       threadPeer(this, javaThread) = 0;
       enter(this, Thread::ZombieState);
     }
+#ifdef AVIAN_THREAD_ALLOCATOR
+    setThreadAllocatorSize(0);
+#endif
   }
 }
 
