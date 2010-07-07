@@ -1,3 +1,4 @@
+import avian.InvalidFieldAssignment;
 import avian.Machine;
 
 public class ThreadTest implements Runnable {
@@ -13,18 +14,20 @@ public class ThreadTest implements Runnable {
 
 	@Override
 	public void run() {
-		finalValue = new Long((long) (Math.random()*1000));
-		if (useThreadAllocator) {
-			Machine.setupThreadAllocator(100000);
+		try {
+			finalValue = new Long((long) (Math.random()*1000));
+			if (useThreadAllocator) {
+				Machine.setupThreadAllocator(100000);
+			}
+			System.out.println("long:" + finalValue + " from "
+					+ Thread.currentThread().getName());
+	
+			finalValue2 = new Long((long) (Math.random()*1000));
+			System.out.println("long 2:" + finalValue2 + " from "
+					+ Thread.currentThread().getName());
+		} catch (Exception e) {
+			System.out.println("error : "+e);
 		}
-
-		System.out.println("long:" + finalValue + " from "
-				+ Thread.currentThread().getName());
-
-		finalValue2 = new Long((long) (Math.random()*1000));
-		System.out.println("long 2:" + finalValue2 + " from "
-				+ Thread.currentThread().getName());
-
 	}
 
 	public Long getFinalValue() {
@@ -39,6 +42,7 @@ public class ThreadTest implements Runnable {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		System.out.println(InvalidFieldAssignment.class.getName());
 		{
 			ThreadTest t = new ThreadTest(false);
 			testThread(t);
@@ -58,7 +62,7 @@ public class ThreadTest implements Runnable {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		System.out.println("t1 : " + t.getFinalValue() + ", "
+		System.out.println(thread.getName() + " : " + t.getFinalValue() + ", "
 				+ t.getFinalValue2());
 	}
 
