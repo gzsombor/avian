@@ -396,6 +396,42 @@ popFrame(Thread* t)
   }
 }
 
+#ifdef AVIAN_THREAD_ALLOCATOR
+void
+dumpPosition(Thread* t, int tc = 1)
+{
+	int fr = t->frame;
+	do {
+		object method = frameMethod(t, fr);
+		int ip = frameIp(t, fr);
+		object clsName = className(t, methodClass(t, method));
+		object mthName = methodName(t, method);
+		object mthSign = methodSpec(t, method);
+		printf("class:%s method:%s%s ip:%i\n",
+				&byteArrayBody(t, clsName, 0),
+				&byteArrayBody(t, mthName, 0),
+				&byteArrayBody(t, mthSign, 0),
+				ip);
+		tc--;
+		fr = frameNext(t, fr);
+	} while(tc>0 && fr>=0);
+}
+
+void
+invalidFieldAssignment(Thread* t, object o, object value, object field)
+{
+	object clsName = className(t, objectClass(t, o));
+	object fldName = fieldName(t, field);
+	object valueType = className(t, objectClass(t, value));
+	printf("trying to set %s->%s to %s\n",
+			&byteArrayBody(t, clsName, 0),
+			&byteArrayBody(t, fldName, 0),
+			&byteArrayBody(t, valueType, 0)
+			);
+}
+
+#endif
+
 class MyStackWalker: public Processor::StackWalker {
  public:
   MyStackWalker(Thread* t, int frame): t(t), frame(frame) { }
@@ -2596,6 +2632,8 @@ interpret(Thread* t)
     		  set(t, o, fieldOffset(t, field), value);
     	  } else {
     		  printf("set field not allowed\n");
+    		  dumpPosition(t,10);
+    		  invalidFieldAssignment(t, o, value, field);
     	      // exception = makeAvianInvalidFieldAssignment(t);
     	  }
 #else
