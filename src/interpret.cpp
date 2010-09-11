@@ -407,11 +407,19 @@ dumpPosition(Thread* t, int tc = 1)
 		object clsName = className(t, methodClass(t, method));
 		object mthName = methodName(t, method);
 		object mthSign = methodSpec(t, method);
-		printf("class:%s method:%s%s ip:%i\n",
+	    unsigned line = t->m->processor->lineNumber
+	      (t, method, ip);
+
+	    object file = classSourceFile(t, methodClass(t, method));
+
+		printf("  at %s.%s%s (%s : %i ip: %i)\n",
 				&byteArrayBody(t, clsName, 0),
 				&byteArrayBody(t, mthName, 0),
 				&byteArrayBody(t, mthSign, 0),
-				ip);
+				file ? &byteArrayBody(t, file, 0) : (int8_t*)(&"unknown"),
+				line,
+				ip
+				);
 		tc--;
 		fr = frameNext(t, fr);
 	} while(tc>0 && fr>=0);
@@ -2634,7 +2642,7 @@ interpret(Thread* t)
     		  printf("set field not allowed\n");
     		  dumpPosition(t,10);
     		  invalidFieldAssignment(t, o, value, field);
-    	      // exception = makeAvianInvalidFieldAssignment(t);
+    	      exception = makeAvianInvalidFieldAssignment(t);
     	  }
 #else
     	  set(t, o, fieldOffset(t, field), value);

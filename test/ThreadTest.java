@@ -14,20 +14,20 @@ public class ThreadTest implements Runnable {
 
 	@Override
 	public void run() {
-		try {
+		if (useThreadAllocator) {
+			Machine.setupThreadAllocator(100000);
+		}
+//		try {
 			finalValue = new Long((long) (Math.random()*1000));
-			if (useThreadAllocator) {
-				Machine.setupThreadAllocator(100000);
-			}
 			System.out.println("long:" + finalValue + " from "
 					+ Thread.currentThread().getName());
 	
 			finalValue2 = new Long((long) (Math.random()*1000));
 			System.out.println("long 2:" + finalValue2 + " from "
 					+ Thread.currentThread().getName());
-		} catch (Exception e) {
-			System.out.println("error : "+e);
-		}
+//		} catch (Exception e) {
+//			System.out.println("error : "+e);
+//		}
 	}
 
 	public Long getFinalValue() {
