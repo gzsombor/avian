@@ -19,6 +19,8 @@
 #include "constants.h"
 #include "arch.h"
 
+/* # define AVIAN_THREAD_ALLOCATOR_DEBUG  */
+
 #ifdef PLATFORM_WINDOWS
 #  define JNICALL __stdcall
 #else
@@ -1594,6 +1596,16 @@ allocateSmall(Thread* t, unsigned sizeInBytes)
 {
   assert(t, t->heapIndex + ceiling(sizeInBytes, BytesPerWord)
          <= ThreadHeapSizeInWords);
+#ifdef AVIAN_THREAD_ALLOCATOR
+  if (t->threadHeap) {
+	  object o = reinterpret_cast<object> (t->threadHeap->allocate(sizeInBytes));
+	  memset(o, 0, sizeInBytes);
+#ifdef AVIAN_THREAD_ALLOCATOR_DEBUG
+	  printf("allocateSmall %i -> %08lx \n", sizeInBytes, reinterpret_cast<uintptr_t>(o));
+#endif
+	  return o;
+  }
+#endif
 
   object o = reinterpret_cast<object>(t->heap + t->heapIndex);
   t->heapIndex += ceiling(sizeInBytes, BytesPerWord);
@@ -1621,16 +1633,25 @@ allocateObject(Thread* t, unsigned sizeInBytes, bool objectMask)
 {
 #ifdef AVIAN_THREAD_ALLOCATOR
   if (t->threadHeap) {
-#ifdef AVIAN_THREAD_ALLOCATOR_DEBUG
-	  printf("allocate from thread heap %d\n", sizeInBytes);
-#endif
 	  object o = reinterpret_cast<object> (t->threadHeap->allocate(sizeInBytes));
 	  memset(o, 0, sizeInBytes);
-	  printf("allocation %d -> %x\n", sizeInBytes, reinterpret_cast<uint32_t>(o));
+#ifdef AVIAN_THREAD_ALLOCATOR_DEBUG
+	  printf("allocate from thread heap %d -> %08lx", sizeInBytes, reinterpret_cast<uintptr_t>(o));
+	  if (!t->threadHeap->contains(o)) {
+		  printf("-> error %08lx is not in the thread heap: %08lx", reinterpret_cast<uintptr_t>(o), reinterpret_cast<uintptr_t>(t->threadHeap));
+	  } else {
+		  printf("-> ok.\n");
+	  }
+#endif
 	  return o;
   }
 #endif
-  return allocate(t, sizeInBytes, objectMask);
+  object ret = allocate(t, sizeInBytes, objectMask);
+#ifdef AVIAN_THREAD_ALLOCATOR_DEBUG
+  long pos = reinterpret_cast<uintptr_t>(ret);
+  printf("global allocation %d -> %08lx\n", sizeInBytes, pos);
+#endif
+  return ret;
 }
 
 inline void
@@ -3045,7 +3066,7 @@ inline bool
 validReference(vm::Thread* t, vm::object base, vm::object field)
 {
   if (t->threadHeap && t->threadHeap->contains(field)) {
-	printf("set object(%x)[''] := %x :", reinterpret_cast<uintptr_t>(base), reinterpret_cast<uintptr_t>(field));
+	printf("set object(%08lx)[''] := %08lx :", reinterpret_cast<uintptr_t>(base), reinterpret_cast<uintptr_t>(field));
 	if (!t->threadHeap->contains(base)) {
 		printf("- not in the thread heap!\n");
 		return false;

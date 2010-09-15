@@ -742,7 +742,9 @@ extern "C" JNIEXPORT void JNICALL
 Avian_avian_Machine_setupThreadAllocator
 (Thread* t, object, uintptr_t* arguments)
 {
-	printf("setup thread allocator, with size %d.\n", arguments[0]);
+#ifdef AVIAN_THREAD_ALLOCATOR_DEBUG
+	printf("setup thread allocator, with size %ld.\n", arguments[0]);
+#endif
 	t->setThreadAllocatorSize(arguments[0]);
 }
 
@@ -750,7 +752,9 @@ extern "C" JNIEXPORT void JNICALL
 Avian_avian_Machine_disposeThreadAllocator
 (Thread* t, object, uintptr_t*)
 {
+#ifdef AVIAN_THREAD_ALLOCATOR_DEBUG
 	printf("dispose thread allocator.\n");
+#endif
 	t->setThreadAllocatorSize(0);
 }
 

@@ -2016,6 +2016,7 @@ interpret(Thread* t)
     unsigned parameterFootprint = methodParameterFootprint(t, method);
     if (LIKELY(peekObject(t, sp - parameterFootprint))) {
       object class_ = methodClass(t, frameMethod(t, frame));
+//      printf("invokespecial %s %s\n", &byteArrayBody(t, className(t, class_), 0), &byteArrayBody(t, methodName(t, method), 0));
       if (isSpecialMethod(t, method, class_)) {
         class_ = classSuper(t, class_);
         if (UNLIKELY(classInit(t, class_, 3))) goto invoke;
@@ -2501,6 +2502,7 @@ interpret(Thread* t)
     object class_ = resolveClassInPool(t, frameMethod(t, frame), index - 1);
     if (UNLIKELY(exception)) goto throw_;
     PROTECT(t, class_);
+//    printf("new %s \n", &byteArrayBody(t, className(t, class_), 0));
 
     if (UNLIKELY(classInit(t, class_, 3))) goto invoke;
 
@@ -2639,8 +2641,10 @@ interpret(Thread* t)
     	  if (LIKELY(validReference(t, o, value))) {
     		  set(t, o, fieldOffset(t, field), value);
     	  } else {
+#ifdef AVIAN_THREAD_ALLOCATOR_DEBUG
     		  printf("set field not allowed\n");
     		  dumpPosition(t,10);
+#endif
     		  invalidFieldAssignment(t, o, value, field);
     	      exception = makeAvianInvalidFieldAssignment(t);
     	  }

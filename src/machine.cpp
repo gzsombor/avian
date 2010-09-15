@@ -2329,6 +2329,9 @@ Thread::setThreadAllocatorSize(int size)
   if (size > 0) {
 	  threadHeap = m->heap->createThreadHeap(size);
   }
+#ifdef AVIAN_THREAD_ALLOCATOR_DEBUG
+  printf("thread allocator: from %08lx to %08lx (%d bytes) \n", reinterpret_cast<uintptr_t>(threadHeap), reinterpret_cast<uintptr_t>(threadHeap) + size, size);
+#endif
 }
 #endif
 
@@ -2577,6 +2580,12 @@ object
 allocate3(Thread* t, Allocator* allocator, Machine::AllocationType type,
           unsigned sizeInBytes, bool objectMask)
 {
+#ifdef AVIAN_THREAD_ALLOCATOR_DEBUG
+  if (t->threadHeap) {
+	  printf("allocate3-from thread pool size:%d, type:%i, mask:%i\n", sizeInBytes, type, (int)objectMask);
+  }
+#endif
+
   if (UNLIKELY(t->useBackupHeap)) {
     expect(t,  t->backupHeapIndex + ceiling(sizeInBytes, BytesPerWord)
            <= ThreadBackupHeapSizeInWords);
